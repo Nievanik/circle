@@ -88,3 +88,8 @@ npm run dev
 - Nievanik Thapa Shrestha - Full Stack Developer / Architect
 - Keepa Maharjan - Frontend Engineer / UI/UX / Project Management
 
+## 🌍 Vision
+We believe no ambitious person should have to navigate growth alone.
+
+Circle aims to redefine how people pursue goals — not as isolated individuals, but as supported, understood, and accountable communities.
+
