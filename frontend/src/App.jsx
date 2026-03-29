@@ -35,7 +35,7 @@ const DashboardLayout = ({ children }) => (
         {children}
       </main>
     </div>
-    <TimeTravelWidget />
+    {import.meta.env.MODE !== 'production' && <TimeTravelWidget />}
   </div>
 );
 

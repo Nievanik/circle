@@ -19,8 +19,10 @@ app.use(express.json());
 app.use(cors());
 
 // Internal Testing Interceptor: Time Travel simulation
-const timeTravelMiddleware = require('./middleware/timeTravel');
-app.use(timeTravelMiddleware);
+if (process.env.NODE_ENV !== 'production') {
+  const timeTravelMiddleware = require('./middleware/timeTravel');
+  app.use(timeTravelMiddleware);
+}
 
 // Route files
 const authRoutes = require('./routes/auth');
