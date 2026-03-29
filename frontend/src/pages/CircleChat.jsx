@@ -120,15 +120,15 @@ const CircleChat = () => {
                </div>
             ) : (
                messages.map((msg, i) => {
-                 const isMe = msg.sender._id === user._id;
-                 const showHeader = i === 0 || messages[i-1].sender._id !== msg.sender._id;
+                 const isMe = msg.sender?._id === user._id;
+                 const showHeader = i === 0 || messages[i-1]?.sender?._id !== msg.sender?._id;
 
                  return (
                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg._id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                       {showHeader && (
                         <div className={`text-xs font-bold mb-1.5 flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                          <span className={isMe ? 'text-brand-600' : 'text-slate-700'}>{isMe ? 'You' : msg.sender.name}</span>
-                          {!isMe && msg.sender.role && <span className="text-[10px] text-slate-400 capitalize -mt-0.5">{msg.sender.role}</span>}
+                          <span className={isMe ? 'text-brand-600' : 'text-slate-700'}>{isMe ? 'You' : (msg.sender?.name || 'Deleted User')}</span>
+                          {!isMe && msg.sender?.role && <span className="text-[10px] text-slate-400 capitalize -mt-0.5">{msg.sender.role}</span>}
                         </div>
                       )}
                       

@@ -18,19 +18,31 @@ app.use(express.json());
 // Enable CORS
 app.use(cors());
 
+// Internal Testing Interceptor: Time Travel simulation
+const timeTravelMiddleware = require('./middleware/timeTravel');
+app.use(timeTravelMiddleware);
+
 // Route files
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const circleRoutes = require('./routes/circles');
-const checkInRoutes = require('./routes/checkins');
+const messageRoutes = require('./routes/messages');
 const connectionRoutes = require('./routes/connections');
+const goalRoutes = require('./routes/goalRoutes');
+const dailyCheckInRoutes = require('./routes/dailyCheckInRoutes');
+const weeklySummaryRoutes = require('./routes/weeklySummaryRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 // Mount routers
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/circles', circleRoutes);
-app.use('/api/checkins', checkInRoutes);
+app.use('/api/messages', messageRoutes);
 app.use('/api/connections', connectionRoutes);
+app.use('/api/goals', goalRoutes);
+app.use('/api/daily-checkins', dailyCheckInRoutes);
+app.use('/api/weekly-summary', weeklySummaryRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');

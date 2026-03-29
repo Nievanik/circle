@@ -84,7 +84,7 @@ exports.updateRequestStatus = async (req, res) => {
     const request = await ConnectionRequest.findOneAndUpdate(
       { _id: req.params.id, receiver: req.user.id, status: 'pending' },
       { status },
-      { new: true }
+      { returnDocument: 'after' }
     ).populate('receiver', 'name role');
 
     if (!request) {

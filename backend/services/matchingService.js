@@ -41,5 +41,5 @@ exports.calculateMatchScore = (userA, userB) => {
     score += 5;
   }
 
-  return score;
+  return Math.round(score);
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Search, Target, CheckSquare, Compass, Shield, Users } from 'lucide-react';
+import { Home, Search, Target, CheckSquare, Compass, Shield, Users, LineChart, MessageCircle, Video } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSocket } from '../../context/SocketContext';
 
@@ -33,7 +33,9 @@ const Sidebar = () => {
     { name: 'My Network', icon: Users, path: '/network', showBadge: hasNewNetworkEvent },
     { name: 'Discover Peers', icon: Search, path: '/discover' },
     { name: 'Support Circles', icon: Target, path: '/circles' },
-    { name: 'Emotional Check-In', icon: CheckSquare, path: '/checkin' },
+    { name: 'Messages', icon: MessageCircle, path: '/messages' },
+    { name: 'Live Mentorship', icon: Video, path: '/mentorship', isPro: true },
+    { name: 'Journey History', icon: LineChart, path: '/history' },
   ];
 
   return (
@@ -69,6 +71,9 @@ const Sidebar = () => {
                 )}
                 <item.icon className={`w-5 h-5 mr-3 z-10 transition-colors ${isActive ? 'text-brand-400' : ''}`} />
                 <span className="z-10 flex-1">{item.name}</span>
+                {item.isPro && (
+                   <span className="ml-auto bg-gradient-to-r from-amber-500 to-orange-500 text-[10px] font-bold text-white px-2 py-0.5 rounded shadow-sm tracking-wider uppercase drop-shadow-sm z-10">Pro</span>
+                )}
                 {item.showBadge && !isActive && (
                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm shadow-red-500/50 z-10"></span>
                 )}

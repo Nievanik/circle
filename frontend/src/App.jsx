@@ -13,7 +13,11 @@ import DiscoverPeers from './pages/DiscoverPeers';
 import PeerProfile from './pages/PeerProfile';
 import SupportCircles from './pages/SupportCircles';
 import CircleChat from './pages/CircleChat';
-import CheckIn from './pages/CheckIn';
+import Inbox from './pages/Inbox';
+import DirectChat from './pages/DirectChat';
+import LiveMentorship from './pages/LiveMentorship';
+import HistoryBoard from './pages/HistoryBoard';
+import TimeTravelWidget from './components/UI/TimeTravelWidget';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = React.useContext(AuthContext);
@@ -31,6 +35,7 @@ const DashboardLayout = ({ children }) => (
         {children}
       </main>
     </div>
+    <TimeTravelWidget />
   </div>
 );
 
@@ -55,7 +60,10 @@ function App() {
         <Route path="/peer/:id" element={<ProtectedRoute><DashboardLayout><PeerProfile /></DashboardLayout></ProtectedRoute>} />
         <Route path="/circles" element={<ProtectedRoute><DashboardLayout><SupportCircles /></DashboardLayout></ProtectedRoute>} />
         <Route path="/circles/:id" element={<ProtectedRoute><DashboardLayout><CircleChat /></DashboardLayout></ProtectedRoute>} />
-        <Route path="/checkin" element={<ProtectedRoute><DashboardLayout><CheckIn /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/messages" element={<ProtectedRoute><DashboardLayout><Inbox /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/messages/:id" element={<ProtectedRoute><DashboardLayout><DirectChat /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/mentorship" element={<ProtectedRoute><DashboardLayout><LiveMentorship /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/history" element={<ProtectedRoute><DashboardLayout><HistoryBoard /></DashboardLayout></ProtectedRoute>} />
         <Route path="*" element={<div className="p-8 text-center text-slate-500">404 - Page feature not found in Hackathon demo.</div>} />
       </Routes>
     </BrowserRouter>

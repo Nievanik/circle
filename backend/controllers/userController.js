@@ -4,7 +4,7 @@ const matchingService = require('../services/matchingService');
 exports.updateProfile = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.user.id, req.body, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true
     }).select('-password');
     res.status(200).json({ success: true, data: user });

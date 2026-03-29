@@ -2,10 +2,12 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
 
-// Load models
+// Models
 const User = require('./models/User');
-const Circle = require('./models/Circle');
-const CheckIn = require('./models/CheckIn');
+const Goal = require('./models/Goal');
+const DailyCheckIn = require('./models/DailyCheckIn');
+const WeeklySummary = require('./models/WeeklySummary');
+const { getCurrentWeekBoundaries, getCurrentDayBoundaries } = require('./utils/weeklyHelpers');
 
 dotenv.config();
 
@@ -19,110 +21,105 @@ const connectDB = async () => {
   }
 };
 
-const personas = [
-  {
-    name: 'Alex Johnson',
-    email: 'alex@student.edu',
-    password: 'password123',
-    role: 'student',
-    universityOrCompany: 'State University',
-    careerGoal: 'Software Engineering Internship',
-    currentStage: 'interview prep',
-    struggleTypes: ['burnout', 'interview stress', 'anxiety'],
-    supportPreferences: ['small circle', '1:1 chat'],
-    latestMoodScore: 4,
-  },
-  {
-    name: 'Maria Garcia',
-    email: 'maria@student.edu',
-    password: 'password123',
-    role: 'student',
-    universityOrCompany: 'Tech Institute',
-    careerGoal: 'Software Engineering Internship',
-    currentStage: 'interview prep',
-    struggleTypes: ['impostor syndrome', 'interview stress'],
-    supportPreferences: ['small circle', 'accountability partner'],
-    latestMoodScore: 6,
-  },
-  {
-    name: 'James Smith',
-    email: 'james@graduate.edu',
-    password: 'password123',
-    role: 'graduate',
-    universityOrCompany: 'Design Academy',
-    careerGoal: 'UX Designer Full-time',
-    currentStage: 'applying',
-    struggleTypes: ['loneliness', 'lack of clarity', 'procrastination'],
-    supportPreferences: ['1:1 chat'],
-    latestMoodScore: 3,
-  },
-  {
-    name: 'Sarah Lee',
-    email: 'sarah@professional.com',
-    password: 'password123',
-    role: 'professional',
-    universityOrCompany: 'TechCorp',
-    careerGoal: 'Switching to Product Management',
-    currentStage: 'switching career',
-    struggleTypes: ['impostor syndrome', 'burnout'],
-    supportPreferences: ['group discussion'],
-    latestMoodScore: 5,
-  }
-];
-
 const seedData = async () => {
   try {
     await User.deleteMany();
-    await Circle.deleteMany();
-    await CheckIn.deleteMany();
+    await Goal.deleteMany();
+    await DailyCheckIn.deleteMany();
+    await WeeklySummary.deleteMany();
 
-    // Hash passwords and create users
     const salt = await bcrypt.genSalt(10);
-    const usersData = personas.map(p => ({
-      ...p,
-      password: bcrypt.hashSync(p.password, salt)
-    }));
+    const { weekStartDate, weekEndDate } = getCurrentWeekBoundaries();
+    const { dayStartDate } = getCurrentDayBoundaries();
+    const dateString = dayStartDate.toISOString().split('T')[0];
+
+    // 1. Generate Target Cohort: "Internship" & "Applying" (Needs minimum 8 for math threshold)
+    const cohortSize = 12;
+    const internApplyingCohort = [];
     
-    // Bypass the pre-save hook for seeding by using insertMany or create 
-    // Wait, insertMany skips pre-save hooks so we must pre-hash.
-    const createdUsers = await User.insertMany(usersData);
-    console.log(`Seeded ${createdUsers.length} Users.`);
+    for (let i = 0; i < cohortSize; i++) {
+       internApplyingCohort.push({
+         name: `Test Cohort User ${i+1}`,
+         email: `intern${i}@test.com`,
+         password: bcrypt.hashSync('password123', salt),
+         role: 'student',
+         careerGoal: 'Internship',
+         currentStage: 'Applying',
+         struggleTypes: ['interview stress', 'burnout', 'impostor syndrome'].filter(() => Math.random() > 0.3), // Randomly assign struggles
+         supportPreferences: ['1:1 chat']
+       });
+    }
 
-    // Create Circles
-    const circle1 = await Circle.create({
-      name: 'SWE Interns 2026',
-      description: 'A circle for students stressed about Leetcode and behavioral rounds.',
-      theme: 'career_goal',
-      creator: createdUsers[0]._id,
-      members: [createdUsers[0]._id, createdUsers[1]._id],
-      tags: ['SWE', 'Interviews', 'Anxiety']
+    // 2. Generate a different small cohort: "Career Switch" & "Getting Started"
+    const switcherCohort = [
+       { name: 'Switcher 1', email: 's1@t.com', password: bcrypt.hashSync('p', salt), careerGoal: 'Career Switch', currentStage: 'Getting Started', struggleTypes: ['lack of clarity'] },
+       { name: 'Switcher 2', email: 's2@t.com', password: bcrypt.hashSync('p', salt), careerGoal: 'Career Switch', currentStage: 'Getting Started', struggleTypes: ['lack of clarity'] }
+    ];
+
+    const allUsers = await User.insertMany([...internApplyingCohort, ...switcherCohort]);
+    console.log(`Seeded ${allUsers.length} total Users.`);
+
+    // 3. Seed Weekly Data for the Internship Cohort to power the Insights Engine
+    const internUsers = allUsers.filter(u => u.careerGoal === 'Internship');
+    
+    const goalsToInsert = [];
+    const checkInsToInsert = [];
+
+    internUsers.forEach((user, idx) => {
+       // Seed Goals (1 to 3 each)
+       const numGoals = Math.floor(Math.random() * 3) + 1;
+       for (let g = 0; g < numGoals; g++) {
+          const isCompleted = Math.random() > 0.4;
+          goalsToInsert.push({
+             userId: user._id,
+             title: `Apply to Company ${g+1}`,
+             category: 'applications',
+             weekStartDate, weekEndDate,
+             status: isCompleted ? 'completed' : 'in_progress',
+             progressPercent: isCompleted ? 100 : 50
+          });
+       }
+
+       // Seed CheckIns (high stress naturally)
+       // Let's seed 3 mock days for each user this week so the graph has data if they time-travel back
+       for (let mapDay = 1; mapDay <= 3; mapDay++) {
+         const pastDate = new Date(dayStartDate);
+         pastDate.setDate(pastDate.getDate() - mapDay);
+         // only push if still in the week
+         if (pastDate >= weekStartDate) {
+           checkInsToInsert.push({
+             userId: user._id,
+             dateString: pastDate.toISOString().split('T')[0],
+             weekStartDate, weekEndDate,
+             stressLevel: Math.floor(Math.random() * 4) + 5, // 5 to 8 stress
+             motivationLevel: Math.floor(Math.random() * 5) + 3,
+             confidenceLevel: 4,
+             progressState: 'moderate',
+             goalRealism: 'realistic'
+           });
+         }
+       }
+       
+       // And seed today's checkin
+       checkInsToInsert.push({
+         userId: user._id,
+         dateString,
+         weekStartDate, weekEndDate,
+         stressLevel: Math.floor(Math.random() * 4) + 6, // 6 to 9 stress
+         motivationLevel: Math.floor(Math.random() * 5) + 3,
+         confidenceLevel: 4,
+         progressState: 'moderate',
+         goalRealism: 'realistic'
+       });
     });
 
-    const circle2 = await Circle.create({
-      name: 'Burnout Recovery',
-      description: 'Support group for professionals and students dealing with intense burnout.',
-      theme: 'challenge_type',
-      creator: createdUsers[3]._id,
-      members: [createdUsers[3]._id, createdUsers[0]._id],
-      tags: ['Mental Health', 'Burnout']
-    });
+    await Goal.insertMany(goalsToInsert);
+    console.log(`Seeded ${goalsToInsert.length} Mock Goals.`);
 
-    console.log('Seeded 2 Circles.');
+    await DailyCheckIn.insertMany(checkInsToInsert);
+    console.log(`Seeded ${checkInsToInsert.length} Mock Daily Check-ins.`);
 
-    // Seed some checkins
-    await CheckIn.create({
-      user: createdUsers[0]._id,
-      mood: 4,
-      stressLevel: 8,
-      motivationLevel: 5,
-      confidenceLevel: 3,
-      struggleToday: 'Failing mock interviews repeatedly.',
-      supportNeededToday: 'Need someone to review my code approach.',
-    });
-
-    console.log('Seeded Check-Ins.');
-
-    console.log('Data Imported Successfully!');
+    console.log('Mathematical Cohort Seeding Complete! Demo is ready.');
     process.exit();
   } catch (err) {
     console.error(err);
