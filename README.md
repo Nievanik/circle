@@ -33,8 +33,5 @@ Circle is a platform built for the Nepal-US Hackathon 2026. It intelligently mat
    ```bash
    cd backend
    npm install
-   # Seed the database before running for the demo (optional)
-   node seed.js
-   
    npm run start
    ```
